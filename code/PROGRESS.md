@@ -55,3 +55,20 @@ Milestones:
 ## Deviations from playbook (track for v2)
 
 - (none yet)
+
+Bookkeeping only. Do not modify pipeline code. Edit code/PROGRESS.md, show me
+the diff before I commit.
+
+1. In the Module status table, change Module 2 (history) Status from TODO to
+   DONE, Retro cell:
+   "user_history.csv lookup by user_id. history_flags split on ';' (NOT
+   comma, report was wrong); only the two expected tokens present. Missing
+   user returns safe empty default, no crash. Acceptance output verified."
+
+2. Under Decisions log, add:
+   "D9: history.py is a dumb lookup, no scoring or verdict logic. Returns
+   flags list + summary text only. 'none' is a sentinel meaning no flags, not
+   a flag token. [confirm whether parser returns [] or ['none'] for a none
+   row, then state it here]"
+
+Show the diff.
