@@ -9,8 +9,8 @@
 |---|--------|--------|-------------------|
 | 0 | scaffold | DONE | Dir tree + stubs created via constrained CC prompt. `tree code/` matches plan. |
 | 1 | io_utils | DONE | CSV read/write + image_path parsing done. 14-col output order round-trips; booleans lowercase, multi-values ;-joined no spaces. Acceptance output shown and verified. |
-| 2 | history | TODO | |
-| 3 | requirements | TODO | |
+| 2 | history | DONE | user_history.csv lookup by user_id. history_flags split on ';' (NOT comma, report was wrong); only the two expected tokens present. Missing user returns safe empty default, no crash. Acceptance output verified. |
+| 3 | requirements | DONE | Pure deterministic mapping (claim_object, num_images) -> all object-specific rules + generals. Accepted; then REVISED for option B: signature now (claim_object, num_images), returns ALL object-specific rules + generals; perception narrows the family. Per-object grouping confirmed 3/2/3. Unmapped object degrades to generals-only. Re-verified. |
 | 4 | perception (VLM) | TODO | |
 | 5 | policy | TODO | |
 | 6 | main wiring | TODO | |
@@ -41,6 +41,20 @@ Milestones:
   unique across rows. An image_id is only meaningful within its own row.
   supporting_image_ids is therefore always a subset of that row's own ids.
   Do not build a global image index.
+- D9: history.py is a dumb lookup, no scoring or verdict logic. Returns flags
+  list + summary text only. 'none' is a sentinel meaning no flags, not a flag
+  token. Parser returns [] for a none row, same as empty or missing user, so
+  policy has one code path: non-empty list => append to risk_flags, empty =>
+  nothing.
+- D11: Option B chosen for issue-family selection. requirements.py returns
+  ALL rules for the object (no family arg); perception picks the applicable
+  one from claim text + images. Removes an extra extraction call and the
+  requirements-before-perception ordering conflict. claimed_issue_family is
+  now a recorded perception observation, not an input to requirements.
+- D12: empty dataset/output.csv header inspected; matches the 14-column
+  contract exactly, 4 inputs then 10 outputs. Header fields are quoted. Open:
+  confirm grader CSV dialect (QUOTE_ALL vs MINIMAL) at final-run hygiene
+  check; assume any-valid-CSV until confirmed.
 
 ## Open questions / risks to revisit
 
@@ -55,21 +69,3 @@ Milestones:
 ## Deviations from playbook (track for v2)
 
 - (none yet)
-
-Bookkeeping only. Do not modify pipeline code. Edit code/PROGRESS.md, show me
-the diff before I commit.
-
-1. In the Module status table, change Module 2 (history) Status from TODO to
-   DONE, Retro cell:
-   "user_history.csv lookup by user_id. history_flags split on ';' (NOT
-   comma, report was wrong); only the two expected tokens present. Missing
-   user returns safe empty default, no crash. Acceptance output verified."
-
-2. Under Decisions log, add:
-  "D9: history.py is a dumb lookup, no scoring or verdict logic. Returns flags
-list + summary text only. 'none' is a sentinel meaning no flags, not a flag
-token. Parser returns [] for a none row, same as empty or missing user, so
-policy has one code path: non-empty list => append to risk_flags, empty =>
-nothing."
-
-Show the diff.
