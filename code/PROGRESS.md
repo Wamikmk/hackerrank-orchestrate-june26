@@ -66,9 +66,10 @@ the diff before I commit.
    user returns safe empty default, no crash. Acceptance output verified."
 
 2. Under Decisions log, add:
-   "D9: history.py is a dumb lookup, no scoring or verdict logic. Returns
-   flags list + summary text only. 'none' is a sentinel meaning no flags, not
-   a flag token. [confirm whether parser returns [] or ['none'] for a none
-   row, then state it here]"
+  "D9: history.py is a dumb lookup, no scoring or verdict logic. Returns flags
+list + summary text only. 'none' is a sentinel meaning no flags, not a flag
+token. Parser returns [] for a none row, same as empty or missing user, so
+policy has one code path: non-empty list => append to risk_flags, empty =>
+nothing."
 
 Show the diff.
