@@ -12,12 +12,12 @@
 | 2 | history | DONE | user_history.csv lookup by user_id. history_flags split on ';' (NOT comma, report was wrong); only the two expected tokens present. Missing user returns safe empty default, no crash. Acceptance output verified. |
 | 3 | requirements | DONE | Pure deterministic mapping (claim_object, num_images) -> all object-specific rules + generals. Accepted; then REVISED for option B: signature now (claim_object, num_images), returns ALL object-specific rules + generals; perception narrows the family. Per-object grouping confirmed 3/2/3. Unmapped object degrades to generals-only. Re-verified. |
 | 4 | perception (VLM) | TODO | |
-| 5 | policy | TODO | |
-| 6 | main wiring | TODO | |
+| 5 | policy | IN PROGRESS | Core built in slice: atomic INV1/2 gate, INV3 contradicted branch, INV4 independent valid_image, INV5 history passthrough. Supported path verified end-to-end. Contradicted / not_enough_information paths and the 5 invariant UNIT tests (incl. negatives + gold-row reproduction) still TODO in Module 5. |
+| 6 | main wiring | IN PROGRESS | Wired all 6 stages on sample, writes valid 14-col output.csv, 20 rows, row order preserved. Real-claims final run still TODO. |
 | 7 | evaluate | TODO | |
 
 Milestones:
-- [ ] Vertical slice: valid 14-col output.csv on sample with STUB perception
+- [x] Vertical slice: valid 14-col output.csv on sample with STUB perception
 - [ ] Perception real (Sonnet) + 3-case spot check
 - [ ] Policy passes all 5 invariant unit tests
 - [ ] Full sample eval scored vs gold; mismatches triaged
@@ -55,6 +55,10 @@ Milestones:
   contract exactly, 4 inputs then 10 outputs. Header fields are quoted. Open:
   confirm grader CSV dialect (QUOTE_ALL vs MINIMAL) at final-run hygiene
   check; assume any-valid-CSV until confirmed.
+- D13: vertical slice built with REAL policy core (not pass-through) fed by
+  stub perception. Rationale: policy + invariants are the risky untested part;
+  exercise them free before paying for VLM calls. Slice output is all-supported
+  (stub limitation) and is NOT an accuracy result.
 
 ## Open questions / risks to revisit
 
@@ -65,6 +69,9 @@ Milestones:
   visible-damage severity. Validate against sample once perception is real.
 - R: 3-image test rows unverified until real run. Watch token cost there.
 - R: prompt-injection images — confirm text_instruction_present fires on test.
+- R: invariant_checker.py verified only on clean supported rows; NOT yet
+  verified to CATCH a violation. Must feed it a deliberately broken row in
+  Module 5 before relying on it.
 
 ## Deviations from playbook (track for v2)
 
