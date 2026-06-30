@@ -1,0 +1,216 @@
+Module 4 perception test results — 2026-06-19T20:56:10
+Model: claude-sonnet-4-6
+
+
+========================================================================
+CASE: A — Sample row 0 (user_001, case_001, 1-image)
+  user_id:      user_001
+  image_paths:  images/sample/case_001/img_1.jpg
+  claim_object: car
+  user_claim:   Customer: Hi, I found new damage on my car after it was parked outside overnight. | Support: Sorry to hear that. Can you...
+  image_ids:    ['img_1']
+  n_images:     1
+  model:        claude-sonnet-4-6
+
+--- RAW PERCEPTION JSON ---
+{
+  "claimed_part_visible": true,
+  "observed_part": "rear_bumper",
+  "claimed_issue_present": true,
+  "observed_issue": "broken_part",
+  "observed_severity": "high",
+  "claimed_issue_family": "dent",
+  "image_assessments": [
+    {
+      "image_id": "img_1",
+      "relevant": true,
+      "note": "The rear of a white sedan is clearly visible showing the bumper is entirely missing or detached, with the underlying metal support structure exposed, and significant deformation/crushing visible across the rear trunk/body panel area."
+    }
+  ],
+  "quality_flags": [],
+  "authenticity_flags": [],
+  "text_instruction_present": false,
+  "observation_note": "The rear bumper cover is completely absent or severely detached, exposing the raw metal crossmember and mounting hardware beneath; additionally, the trunk lid and rear body panel show visible creasing and deformation consistent with a significant rear-end impact. The damage observed is substantially more severe than a simple dent as described in the claim."
+}
+
+--- CONTRACT VALIDITY ---
+  ALL CLEAR — 11 keys present, image_assessments count correct, all enum tokens valid
+
+--- TOKEN USAGE ---
+  input_tokens:               1428
+  output_tokens:              268
+  cache_creation_input_tokens:0
+  cache_read_input_tokens:    0
+
+--- GOLD COMPARISON (Module 5 authored observations) ---
+  MATCH     observed_part: perception='rear_bumper'  gold='rear_bumper'
+  DISAGREE  observed_issue: perception='broken_part'  gold='dent'
+  MATCH     authenticity_flags: perception=[]  gold=[]
+  MATCH     text_instruction_present: perception=False  gold=False
+
+========================================================================
+CASE: B — Sample row 7 (user_008, case_008, 1-image)
+  user_id:      user_008
+  image_paths:  images/sample/case_008/img_1.jpg
+  claim_object: car
+  user_claim:   Customer: I picked up my car after service and noticed a mark on the hood. | Support: What kind of mark is it? | Custome...
+  image_ids:    ['img_1']
+  n_images:     1
+  model:        claude-sonnet-4-6
+
+--- RAW PERCEPTION JSON ---
+{
+  "claimed_part_visible": true,
+  "observed_part": "hood",
+  "claimed_issue_present": false,
+  "observed_issue": "broken_part",
+  "observed_severity": "high",
+  "claimed_issue_family": "scratch",
+  "image_assessments": [
+    {
+      "image_id": "img_1",
+      "relevant": true,
+      "note": "The image shows a severely wrecked car with the hood open, front end extensively damaged, body panels torn and missing, and the engine bay fully exposed \u2014 far beyond what a post-service scratch would entail."
+    }
+  ],
+  "quality_flags": [],
+  "authenticity_flags": [
+    "non_original_image",
+    "possible_manipulation"
+  ],
+  "text_instruction_present": false,
+  "observation_note": "The submitted image shows a catastrophically damaged vehicle with the hood open and deformed, front body panels torn away, and the engine fully exposed \u2014 this is wholesale structural destruction, not a surface scratch on a hood panel. The image also bears Vecteezy stock-photo watermarks, indicating it is not an original photograph taken by the claimant."
+}
+
+--- CONTRACT VALIDITY ---
+  ALL CLEAR — 11 keys present, image_assessments count correct, all enum tokens valid
+
+--- TOKEN USAGE ---
+  input_tokens:               2617
+  output_tokens:              284
+  cache_creation_input_tokens:0
+  cache_read_input_tokens:    0
+
+--- GOLD COMPARISON (Module 5 authored observations) ---
+  DISAGREE  observed_part: perception='hood'  gold='front_bumper'
+  MATCH     observed_issue: perception='broken_part'  gold='broken_part'
+  DISAGREE  authenticity_flags: perception=['non_original_image', 'possible_manipulation']  gold=['non_original_image']
+  MATCH     text_instruction_present: perception=False  gold=False
+
+========================================================================
+CASE: C — Test 2-image (user_004, case_004) [structural]
+  user_id:      user_004
+  image_paths:  images/test/case_004/img_1.jpg;images/test/case_004/img_2.jpg
+  claim_object: car
+  user_claim:   Customer: A stone hit the front glass while driving. | Support: Are you reporting the windshield? | Customer: Yes. It lo...
+  image_ids:    ['img_1', 'img_2']
+  n_images:     2
+  model:        claude-sonnet-4-6
+
+--- RAW PERCEPTION JSON ---
+{
+  "claimed_part_visible": true,
+  "observed_part": "windshield",
+  "claimed_issue_present": true,
+  "observed_issue": "crack",
+  "observed_severity": "high",
+  "claimed_issue_family": "glass_shatter",
+  "image_assessments": [
+    {
+      "image_id": "img_1",
+      "relevant": true,
+      "note": "Close-up view of a windshield showing multiple impact points with radial and branching cracks spreading across the glass surface, consistent with stone strike damage."
+    },
+    {
+      "image_id": "img_2",
+      "relevant": false,
+      "note": "Interior view of a vehicle dashboard and windshield from the driver's perspective showing no visible damage to the windshield; this appears to be a generic stock-style interior shot."
+    }
+  ],
+  "quality_flags": [],
+  "authenticity_flags": [
+    "non_original_image"
+  ],
+  "text_instruction_present": false,
+  "observation_note": "The first image clearly shows a windshield with at least three distinct impact craters with extensive radial cracking patterns, indicating multiple stone strike impacts of high severity. The second image appears to be a generic or stock interior shot of a different vehicle with no visible damage, raising concerns about its relevance to this specific claim."
+}
+
+--- CONTRACT VALIDITY ---
+  ALL CLEAR — 11 keys present, image_assessments count correct, all enum tokens valid
+
+--- TOKEN USAGE ---
+  input_tokens:               2182
+  output_tokens:              327
+  cache_creation_input_tokens:0
+  cache_read_input_tokens:    0
+
+========================================================================
+CASE: D — Test 3-image (user_019, case_019) [structural, all-JPEG]
+  user_id:      user_019
+  image_paths:  images/test/case_019/img_1.jpg;images/test/case_019/img_2.jpg;images/test/case_019/img_3.jpg
+  claim_object: laptop
+  user_claim:   Customer: The laptop fell while open. | Support: What visible issues are you claiming? | Customer: Hinge broke, and I al...
+  image_ids:    ['img_1', 'img_2', 'img_3']
+  n_images:     3
+  model:        claude-sonnet-4-6
+
+--- RAW PERCEPTION JSON ---
+{
+  "claimed_part_visible": true,
+  "observed_part": "hinge",
+  "claimed_issue_present": true,
+  "observed_issue": "broken_part",
+  "observed_severity": "high",
+  "claimed_issue_family": "hinge damage and screen crack",
+  "image_assessments": [
+    {
+      "image_id": "img_1",
+      "relevant": true,
+      "note": "Shows the laptop's hinge area with clear structural damage \u2014 the hinge mechanism appears visibly broken and separated, with plastic components cracked and displaced; the screen-to-body connection is severely compromised, though the screen surface itself is not clearly visible from this angle."
+    },
+    {
+      "image_id": "img_2",
+      "relevant": false,
+      "note": "This is a generic stock product image of a Dell laptop in undamaged condition, providing no evidence relevant to the claimed damage."
+    },
+    {
+      "image_id": "img_3",
+      "relevant": false,
+      "note": "This is another generic stock product image of a Dell laptop showing the lid and rear in pristine condition, providing no evidence relevant to the claimed damage."
+    }
+  ],
+  "quality_flags": [
+    "wrong_angle",
+    "damage_not_visible"
+  ],
+  "authenticity_flags": [
+    "non_original_image"
+  ],
+  "text_instruction_present": false,
+  "observation_note": "In img_1, the laptop hinge area is visibly broken, with the plastic casing cracked and the hinge mechanism structurally separated from the body; no clear view of the screen surface is available to confirm or deny a screen crack. Images img_2 and img_3 are stock product photos of an undamaged Dell laptop and are not original claim-relevant photographs."
+}
+
+--- CONTRACT VALIDITY ---
+  ALL CLEAR — 11 keys present, image_assessments count correct, all enum tokens valid
+
+--- TOKEN USAGE ---
+  input_tokens:               3871
+  output_tokens:              435
+  cache_creation_input_tokens:0
+  cache_read_input_tokens:    0
+
+========================================================================
+TOKEN COST SUMMARY (across 4 calls)
+(Sonnet 4.6: $3/MTok in, $15/MTok out; cache creation same as in, cache read 10% of in)
+  See per-case TOKEN USAGE sections above for individual call costs.
+  Sum those figures to get total spend for these 4 calls.
+  Extrapolation: 20 sample rows ≈ 20x single-call cost; 44 test rows ≈ 44x.
+
+========================================================================
+ACCEPTANCE CHECK
+  Case A: PASS — valid contract, image_assessments=1/1
+  Case B: PASS — valid contract, image_assessments=1/1
+  Case C: PASS — valid contract, image_assessments=2/2
+  Case D: PASS — valid contract, image_assessments=3/3
+
+ALL 4 CASES PASSED ACCEPTANCE TEST.

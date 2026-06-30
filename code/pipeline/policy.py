@@ -12,7 +12,15 @@ Decision hierarchy:
 
 from __future__ import annotations
 
+import logging
+
 from pipeline.history import HistoryRecord
+
+# Damage tokens that represent real observable damage (not absence or uncertainty).
+_REAL_DAMAGE_ISSUES: frozenset[str] = frozenset({
+    "dent", "scratch", "crack", "glass_shatter", "broken_part",
+    "missing_part", "torn_packaging", "crushed_packaging", "water_damage", "stain",
+})
 
 
 def run_policy(perception: dict, history: HistoryRecord, row: dict) -> dict:
@@ -36,16 +44,9 @@ def run_policy(perception: dict, history: HistoryRecord, row: dict) -> dict:
     observation_note: str = perception["observation_note"]
     claim_object: str = row.get("claim_object", "object")
 
-    # ── Invariant 4: valid_image is INDEPENDENT of verdict ──────────────────
-    # Driven only by authenticity_flags. Never coupled to claim_status.
+    # ── Invariant 4: valid_image driven ONLY by authenticity_flags ───────────
+    # Never coupled to claim_status or quality.
     valid_image: str = "false" if authenticity_flags else "true"
-
-    # ── risk_flags: quality + text_instruction + history (Invariant 5) ──────
-    raw_risk: list[str] = list(quality_flags)
-    if text_instruction_present:
-        raw_risk.append("text_instruction_present")
-    raw_risk.extend(history.flags)  # INV5: history flags pass through
-    risk_flags: str = ";".join(raw_risk) if raw_risk else "none"
 
     # ── ATOMIC gate (Invariants 1 + 2) ──────────────────────────────────────
     # If claimed part not visible: set ALL FOUR fields as one coupled decision.
@@ -60,7 +61,7 @@ def run_policy(perception: dict, history: HistoryRecord, row: dict) -> dict:
         )
         base_just = (
             f"The submitted images do not show the claimed {claim_object} part, "
-            f"so there is insufficient evidence to assess the damage."
+            "so there is insufficient evidence to assess the damage."
         )
         claim_status_justification = _with_history(base_just, history)
 
@@ -68,9 +69,33 @@ def run_policy(perception: dict, history: HistoryRecord, row: dict) -> dict:
         # Part IS visible — evidence standard met.
         evidence_standard_met = "true"
         relevant_ids = [a["image_id"] for a in image_assessments if a.get("relevant")]
+        if not relevant_ids:
+            # Part was visible but VLM marked no images relevant (e.g. contradicted
+            # claim where undamaged-part images were flagged non-relevant). The images
+            # still support the evaluation decision, so include all assessed images.
+            # supporting_image_ids=none is reserved for the NEI path (INV1).
+            relevant_ids = [a["image_id"] for a in image_assessments]
         supporting_image_ids = ";".join(relevant_ids) if relevant_ids else "none"
-        severity = observed_severity
-        evidence_standard_met_reason = observation_note  # VLM's visual description
+        evidence_standard_met_reason = observation_note
+
+        # ── INV1 severity gate (D18): severity=unknown ONLY on NEI path ─────
+        # severity must be coupled to the verdict; unknown is reserved for NEI.
+        if observed_issue == "none":
+            # Part visible, no damage observed → severity is none, not unknown.
+            severity = "none"
+        elif observed_severity in ("low", "medium", "high"):
+            # Known severity — pass through regardless of issue token.
+            severity = observed_severity
+        else:
+            # Damage present (or uncertain) but severity is unrateable.
+            # Floor to "low": the minimal non-zero value that is not none/unknown.
+            # unknown would violate INV1; none would falsely assert no damage (D19).
+            logging.warning(
+                "D19: flooring severity unknown→low (non-NEI row): "
+                "observed_issue=%s observed_severity=%s",
+                observed_issue, observed_severity,
+            )
+            severity = "low"
 
         # ── Invariant 3: part visible + issue absent -> contradicted ─────────
         if not claimed_issue_present:
@@ -79,6 +104,26 @@ def run_policy(perception: dict, history: HistoryRecord, row: dict) -> dict:
             claim_status = "supported"
 
         claim_status_justification = _with_history(observation_note, history)
+
+    # ── Build risk_flags in canonical order (Invariant 5) ───────────────────
+    # Order: quality_flags → claim_mismatch → text_instruction →
+    #        authenticity_flags → history.flags (pass-through verbatim, D9/D17)
+    raw_risk: list[str] = list(quality_flags)
+
+    # claim_mismatch: damage IS visible but doesn't match the claim.
+    # Contrast with damage_not_visible (part present, issue simply absent).
+    if claim_status == "contradicted" and "damage_not_visible" not in quality_flags:
+        raw_risk.append("claim_mismatch")
+
+    if text_instruction_present:
+        raw_risk.append("text_instruction_present")
+
+    # Authenticity issues are risk signals and also appear in risk_flags.
+    raw_risk.extend(authenticity_flags)
+
+    raw_risk.extend(history.flags)  # INV5: history flags pass through (D9, D17)
+
+    risk_flags: str = ";".join(raw_risk) if raw_risk else "none"
 
     return {
         "evidence_standard_met": evidence_standard_met,

@@ -1,0 +1,10 @@
+code/.env
+code/.env.*.local
+code/logs/
+__pycache__/
+*.pyc
+.venv/
+code.zip
+output.csv
+out_temp.md
+interview_prep.html

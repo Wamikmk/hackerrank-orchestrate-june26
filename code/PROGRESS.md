@@ -59,6 +59,49 @@ Milestones:
   stub perception. Rationale: policy + invariants are the risky untested part;
   exercise them free before paying for VLM calls. Slice output is all-supported
   (stub limitation) and is NOT an accuracy result.
+- D14 (behaviour b, adopted-and-fine): authenticity_flags (non_original_image,
+  possible_manipulation) observed by perception are passed through into output
+  risk_flags in addition to driving valid_image. This is a clean observation
+  passthrough: the tokens are valid output risk_flags per CONTEXT.md and the
+  data (sample row 7) confirms them present in gold risk_flags. No re-examination
+  trigger needed; this is straightforward.
+- D16 (claim_mismatch rule — PROVISIONAL, NOT SETTLED): policy appends
+  claim_mismatch to risk_flags when claim_status=contradicted AND
+  damage_not_visible is NOT in quality_flags. Rationale: claim_mismatch denotes
+  a contradicted verdict where visible damage actively differs from what was
+  claimed (a different part, different issue type, or severity mismatch), as
+  distinct from the case where the claimed part is visible but damage is simply
+  absent (damage_not_visible). This rule was reverse-engineered from 5 gold rows
+  (4, 7, 13, 18, 19) and is consistent across them, but the n is small.
+  RE-EXAMINE TRIGGER: after the real run on claims.csv, check whether
+  claim_mismatch appears in proportion to the contradicted verdicts and in the
+  right rows. If it fires systematically on rows where it should not, or misses
+  rows where it should fire, revisit. This decision is NOT settled.
+- D18 (INV1 enforced in policy as authoritative gate — severity coupled to verdict):
+  Policy now owns severity atomically in the non-NEI branch. Rule: if observed_issue==none
+  → severity=none; if observed_severity in {low,medium,high} → pass through; otherwise
+  → floor to low (D19). severity=unknown is emitted ONLY on the not_enough_information
+  path. The perception prompt nudge (observed_severity none vs unknown) is the first line
+  of defense; policy is the guarantee. The prompt-only approach was insufficient: row 01
+  (supported, scratch, observed_severity=unknown from an earlier perception run) would have
+  emitted severity=unknown on a non-NEI row — a live INV1 violation. Gold-row severities
+  are unaffected (none of the 7 gold rows had the violating profile).
+- D19 (PROVISIONAL — non-NEI row with damage present but unrateable severity floors to low):
+  When claimed_part_visible=True AND observed_issue != none AND observed_severity=unknown,
+  policy sets severity=low. Rationale: "none" would falsely assert no damage; "unknown" is
+  reserved for NEI and would violate INV1; "low" is the minimal-but-nonzero floor. This
+  branch is logged at WARNING level. RE-EXAMINE TRIGGER: after the real run on claims.csv,
+  check every row where the D19 floor fires. If low is systematically mis-calibrated (e.g.,
+  what should be medium or high gets floored), revise the floor or adjust the perception
+  prompt to produce a real severity estimate rather than unknown.
+- D17 (history pass-through reaffirmed — cross-ref D9): manual_review_required
+  is emitted in output risk_flags ONLY when it is present in the user's source
+  history_flags (user_history.csv). It is never synthesised from user_history_risk
+  or any other derived condition. The earlier session briefly added an auto-derive
+  rule; that was cut because it violated D9 (history.py is a verbatim pass-through
+  of the tokens as they appear). Effect: sample rows 4, 7, 18, 19 will show a
+  risk_flags diff vs gold on manual_review_required. That diff is expected and
+  correct; the gold may reflect a policy the grader applies separately.
 
 ## Open questions / risks to revisit
 

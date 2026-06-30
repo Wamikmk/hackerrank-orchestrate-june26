@@ -1,0 +1,4 @@
+anthropic==0.111.0
+python-dotenv==1.2.2
+pillow==12.2.0
+pillow-heif==1.4.0
