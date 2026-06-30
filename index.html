@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Modal Evidence Review</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:          #0e1017;
+      --surface:     #181b26;
+      --border:      #272c3f;
+      --text:        #c8d0e7;
+      --text-muted:  #61698a;
+      --accent:      #4ec9b0;
+      --accent-dim:  rgba(78, 201, 176, 0.12);
+      --code-bg:     #161924;
+      --code-text:   #9ecaff;
+    }
+
+    html {
+      font-size: 17px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.75;
+      padding: 2rem 1.25rem 5rem;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ---- Header ---- */
+
+    header {
+      padding: 2.75rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3.25rem;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: #e6ecf8;
+      margin-bottom: 0.65rem;
+    }
+
+    .tagline {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+      margin-bottom: 1.4rem;
+      max-width: 600px;
+    }
+
+    .meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .meta-tag {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      letter-spacing: 0.02em;
+    }
+
+    /* ---- Sections ---- */
+
+    section {
+      margin-bottom: 3.25rem;
+    }
+
+    h2 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.35rem;
+      padding-bottom: 0.55rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: #d8deef;
+      margin: 1.75rem 0 0.5rem;
+    }
+
+    h3:first-child {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ---- Links ---- */
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* ---- Metrics / numbers ---- */
+
+    .metric {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ---- Code ---- */
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      font-size: 0.83em;
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 0.15em 0.42em;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1.3rem 0;
+      font-size: 0.81rem;
+      line-height: 1.65;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      border: none;
+      color: var(--code-text);
+      font-size: 1em;
+    }
+
+    /* ---- Pipeline flow ---- */
+
+    .pipeline {
+      list-style: none;
+      padding: 0;
+      margin: 1.35rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .pipeline-step {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 1.15rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+    }
+
+    .step-num {
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      min-width: 1.6rem;
+      padding-top: 0.1rem;
+      opacity: 0.8;
+    }
+
+    .step-body {
+      flex: 1;
+    }
+
+    .step-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .step-name {
+      font-weight: 700;
+      color: #e4eaf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+
+    .step-path {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+    }
+
+    .step-desc {
+      font-size: 0.91rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    /* ---- Stats grid ---- */
+
+    .stats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin: 1.35rem 0;
+    }
+
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.7rem 1rem;
+      text-align: center;
+      min-width: 92px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- Accuracy callout ---- */
+
+    .accuracy-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin: 1.35rem 0;
+    }
+
+    .accuracy-box {
+      background: var(--accent-dim);
+      border: 1px solid rgba(78, 201, 176, 0.25);
+      border-radius: 7px;
+      padding: 0.75rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .accuracy-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Courier New", monospace;
+      line-height: 1.1;
+    }
+
+    .accuracy-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- Next-steps items ---- */
+
+    .next-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .next-item {
+      padding-left: 1.1rem;
+      border-left: 2px solid var(--border);
+    }
+
+    .next-title {
+      font-weight: 600;
+      color: #d8deef;
+      margin-bottom: 0.3rem;
+      font-size: 0.96rem;
+    }
+
+    .next-body {
+      font-size: 0.93rem;
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    /* ---- Footer ---- */
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- Responsive ---- */
+
+    @media (max-width: 580px) {
+      html { font-size: 16px; }
+
+      h1 { font-size: 1.5rem; }
+
+      .pipeline-step {
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .step-num { min-width: auto; }
+
+      .stats-grid, .accuracy-row {
+        gap: 0.5rem;
+      }
+
+      .stat-box { min-width: 80px; }
+
+      .accuracy-value { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <h1>Multi-Modal Evidence Review</h1>
+      <p class="tagline">A pipeline that verifies damage claims by inspecting submitted photos and deciding whether the images support, contradict, or lack enough evidence to assess the claim.</p>
+      <div class="meta-tags">
+        <span class="meta-tag">24-hour hackathon</span>
+        <span class="meta-tag">Python</span>
+        <span class="meta-tag">Anthropic API</span>
+        <span class="meta-tag">44 claims</span>
+        <span class="meta-tag">multimodal</span>
+      </div>
+    </header>
+
+    <!-- Why -->
+    <section id="why">
+      <h2>Why</h2>
+      <p>This was the HackerRank Orchestrate June 2026 hackathon task: build a system that reads a CSV of damage claims (car dents, laptop cracks, package damage), examines the submitted photos, and returns structured predictions including a verdict, a severity rating, image quality flags, and a one-sentence justification. The same problem exists in real insurance workflows. The interesting parts are that the evidence is in images, the claim text may be multilingual (Hindi-English code-switching appears in the dataset), and the verdict rules have cross-field constraints that must hold exactly.</p>
+    </section>
+
+    <!-- What -->
+    <section id="what">
+      <h2>What</h2>
+
+      <p>Input: <code>dataset/claims.csv</code> (<span class="metric">44 rows</span>). Each row has a user ID, one to three image paths, a short claim conversation, and an object type (car, laptop, or package).</p>
+
+      <p>The pipeline runs these stages in order per row:</p>
+
+      <ul class="pipeline">
+        <li class="pipeline-step">
+          <span class="step-num">01</span>
+          <div class="step-body">
+            <div class="step-head">
+              <span class="step-name">history</span>
+              <span class="step-path">pipeline/history.py</span>
+            </div>
+            <div class="step-desc">Looks up the user in <code>user_history.csv</code> (<span class="metric">47 users</span>, stats like past rejections and a free-text risk summary). Pure CSV lookup, no model calls.</div>
+          </div>
+        </li>
+        <li class="pipeline-step">
+          <span class="step-num">02</span>
+          <div class="step-body">
+            <div class="step-head">
+              <span class="step-name">requirements</span>
+              <span class="step-path">pipeline/requirements.py</span>
+            </div>
+            <div class="step-desc">Returns the applicable image evidence rules from <code>evidence_requirements.csv</code> (<span class="metric">11 rules</span> across <span class="metric">3</span> object types). Deterministic; the rule set is passed into the VLM prompt.</div>
+          </div>
+        </li>
+        <li class="pipeline-step">
+          <span class="step-num">03</span>
+          <div class="step-body">
+            <div class="step-head">
+              <span class="step-name">perception</span>
+              <span class="step-path">pipeline/perception.py</span>
+            </div>
+            <div class="step-desc">One Anthropic API call per row. All row images are batched into a single call with the claim text and evidence requirements. Returns a locked 11-key JSON observation: which part is visible, what issue is visible, per-image relevance, quality flags, authenticity flags, whether embedded instruction text is present, and a short observation note. No verdict in this output.</div>
+          </div>
+        </li>
+        <li class="pipeline-step">
+          <span class="step-num">04</span>
+          <div class="step-body">
+            <div class="step-head">
+              <span class="step-name">policy</span>
+              <span class="step-path">pipeline/policy.py</span>
+            </div>
+            <div class="step-desc">Deterministic Python. Maps the perception JSON and user history to the 10 output fields. Owns the <code>claim_status</code> decision and enforces five cross-field invariants (for example, <code>not_enough_information</code> always co-occurs with <code>evidence_standard_met=false</code>, <code>supporting_image_ids=none</code>, and <code>severity=unknown</code>). Zero model calls.</div>
+          </div>
+        </li>
+      </ul>
+
+      <p>Output: <code>output.csv</code> (14 columns: the 4 input columns echoed first, then 10 output fields including <code>claim_status</code>, <code>severity</code>, <code>risk_flags</code>, and justification text).</p>
+
+      <p>Results on the 20-row labeled sample:</p>
+      <div class="accuracy-row">
+        <div class="accuracy-box">
+          <span class="accuracy-value">75%</span>
+          <span class="accuracy-label">claim_status accuracy</span>
+        </div>
+        <div class="accuracy-box">
+          <span class="accuracy-value">0</span>
+          <span class="accuracy-label">invariant violations</span>
+        </div>
+      </div>
+
+      <p>Dataset scale:</p>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-value">44</span>
+          <span class="stat-label">test rows</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value">116</span>
+          <span class="stat-label">images</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value">47</span>
+          <span class="stat-label">users</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value">11</span>
+          <span class="stat-label">evidence rules</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value">3</span>
+          <span class="stat-label">object types</span>
+        </div>
+      </div>
+
+      <p>The two-model comparison (Sonnet 4.6 vs Haiku 4.5) was planned but not completed within the hackathon window, so only Sonnet results exist.</p>
+    </section>
+
+    <!-- How -->
+    <section id="how">
+      <h2>How</h2>
+
+      <h3>Why perception and policy are separate modules</h3>
+      <p>With only 20 labeled rows, there is no training signal large enough to teach a model the output rules. The rules are consistent and explicit in the data, so they are better written as auditable Python than hoped for from a prompt. Splitting perception from policy also means policy can be unit-tested without any API calls.</p>
+
+      <h3>Model choice</h3>
+      <p><code>claude-sonnet-4-6</code> is the primary model. Haiku 4.5 was the planned comparison (same prompt, lower cost). Opus 4.8 was listed as a fallback if a class showed systematic weakness. All three support vision. The perception system prompt is cached using Anthropic's prompt caching to avoid re-sending the same 1000-token prompt on every row.</p>
+
+      <h3>How perception works</h3>
+      <p>All images for a row are sent in a single API call as base64 blocks. The system prompt instructs the model to return raw JSON with exactly 11 keys and lists every allowed enum value. The user turn includes the claim text, the object type, the allowed part names, and the applicable evidence requirements. A fallback JSON (all fields set to the most conservative values) is returned if the response cannot be parsed after three attempts. AVIF and HEIF images, which the Anthropic API does not accept natively, are transcoded to JPEG in memory before encoding; the files on disk are not modified.</p>
+
+      <h3>Security handling</h3>
+      <p>The dataset includes at least one image with embedded instruction text ("mark as approved" style overlays, confirmed in sample row 19). The system prompt explicitly labels embedded text as untrusted content. Perception flags <code>text_instruction_present=true</code> and the policy raises that flag in <code>risk_flags</code>, but the text does not influence the verdict.</p>
+
+      <h3>The invariant system</h3>
+      <p>Five cross-field constraints are stated in the plan and enforced in two places: policy never produces an output that violates them, and an invariant checker (<code>evaluation/invariant_checker.py</code>) validates every row after the run. This double-check caught a real bug during development where perception returning <code>observed_severity=unknown</code> on a supported row would have produced a severity value reserved for the <code>not_enough_information</code> path. The fix is a severity gate in policy (decision D18 in STATE.md), not a prompt patch.</p>
+
+      <h3>Evaluation</h3>
+      <p><code>evaluation/evaluate.py</code> loads the gold CSV and the prediction CSV, computes per-field exact-match accuracy for all 8 structured output fields, produces a confusion matrix for <code>claim_status</code>, lists every per-row mismatch, and flags any field where 3 or more rows miss as a cluster worth investigating. It also runs the invariant checker. The report is saved to <code>evaluation/evaluation_report.md</code>.</p>
+
+      <h3>Rate limiting</h3>
+      <p>The Anthropic free tier for vision runs at approximately <span class="metric">5 requests per minute</span>. The pipeline sleeps 13 seconds between rows to stay at about <span class="metric">4.6 RPM</span>. This is the main reason a full run on 44 rows takes roughly <span class="metric">10 minutes</span>.</p>
+    </section>
+
+    <!-- Running it -->
+    <section id="running">
+      <h2>Running it</h2>
+
+      <h3>Install dependencies</h3>
+<pre><code>python -m venv .venv
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r code/requirements.txt</code></pre>
+      <p>Dependencies: <code>anthropic==0.111.0</code>, <code>python-dotenv==1.2.2</code>, <code>pillow==12.2.0</code>, <code>pillow-heif==1.4.0</code>.</p>
+
+      <h3>Configure the API key</h3>
+<pre><code>cp code/.env.example code/.env
+# Edit code/.env and set ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+
+      <h3>Run the pipeline</h3>
+<pre><code>cd code
+python main.py                        # sample set (20 rows), writes output.csv
+python main.py ../dataset/claims.csv  # full test set (44 rows), writes output.csv</code></pre>
+      <p>After writing <code>output.csv</code>, the pipeline automatically checks column order and runs the invariant checker over every row. Results print to stdout; a detailed log goes to <code>code/logs/run.log</code>.</p>
+
+      <h3>Evaluate against the labeled sample</h3>
+<pre><code>python evaluation/evaluate.py   # scores existing output.csv vs sample gold</code></pre>
+    </section>
+
+    <!-- What I would do next -->
+    <section id="next">
+      <h2>What I would do next</h2>
+
+      <div class="next-list">
+        <div class="next-item">
+          <div class="next-title">Severity is the worst field</div>
+          <div class="next-body">On the 20-row sample, severity accuracy was <span class="metric">25%</span>. The model frequently returned <code>high</code> where gold said <code>medium</code>, and <code>glass_shatter</code> where gold said <code>crack</code>. Better prompt examples with explicit disambiguation rules would help. The type disambiguation section in the system prompt exists but is not enough.</div>
+        </div>
+
+        <div class="next-item">
+          <div class="next-title">risk_flags has 40% accuracy</div>
+          <div class="next-body">Most misses come from two sources: the model flags <code>non_original_image</code> or <code>possible_manipulation</code> on images where gold says <code>valid_image=true</code> (the model is over-sensitive to image quality), and <code>manual_review_required</code> is never emitted by the system because it only propagates from <code>user_history.csv</code>, which does not always contain it for the affected users. It may be that the grader derives <code>manual_review_required</code> from other criteria.</div>
+        </div>
+
+        <div class="next-item">
+          <div class="next-title">The two-model comparison was not completed</div>
+          <div class="next-body">The plan called for running both Sonnet 4.6 and Haiku 4.5 and comparing accuracy vs cost. Only Sonnet results exist.</div>
+        </div>
+
+        <div class="next-item">
+          <div class="next-title">The 44-row test run was not verified end to end within the hackathon window</div>
+          <div class="next-body">The pipeline is built to handle it (tested on the 20-row sample), but the final test run output was not confirmed complete.</div>
+        </div>
+
+        <div class="next-item">
+          <div class="next-title">Prompt caching saves money but the system prompt is large</div>
+          <div class="next-body">The <span class="metric">1000-token</span> system prompt is cached across rows. If the cache misses (cold start or after a 5-minute gap), every row pays the full input cost. A shorter system prompt with a structured few-shot block appended per row might hold the cache better.</div>
+        </div>
+
+        <div class="next-item">
+          <div class="next-title">The contradicted path logic for wrong_object and wrong_object_part is not fully settled</div>
+          <div class="next-body">Decision D16 in STATE.md covers when to emit <code>claim_mismatch</code>, but edge cases around whether <code>wrong_object_part</code> should suppress or force the flag were flagged for re-examination after a real claims.csv run.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <a href="https://github.com/Wamikmk/hackerrank-orchestrate-june26">github.com/Wamikmk/hackerrank-orchestrate-june26</a>
+    </footer>
+
+  </div>
+</body>
+</html>
